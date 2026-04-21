@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ポモドーロタイマー</title>
+</head>
+<body>
+    <h1>ポモドーロタイマー</h1>
+
+    <p>セット数：<input type="number" id="sessions" value="3"></p>
+    <p>集中時間（分）：<input type="number" id="focus" value="25"></p>
+    <p>休憩時間（分）：<input type="number" id="rest" value="5"></p>
+
+    <button onclick="startTimer()">スタート</button>
+
+    <h2 id="status">待機中</h2>
+    <h1 id="timer">--:--</h1>
+    <p id="total">合計勉強時間：0分</p>
+
+    <script>
+        function playBeep() {
+            let context = new AudioContext();
+            let oscillator = context.createOscillator();
+            oscillator.connect(context.destination);
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.5);
+        }
+
+        function saveRecord(minutes) {
+            fetch("/save", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({minutes: minutes})
+            });
+        }
+
+        function startTimer() {
+            let sessions = parseInt(document.getElementById("sessions").value);
+            let focus = parseInt(document.getElementById("focus").value);
+            let rest = parseInt(document.getElementById("rest").value);
+
+            let currentSession = 1;
+            let isFocus = true;
+            let seconds = focus * 60;
+            let totalTime = 0;
+
+            document.getElementById("status").textContent = "集中タイム！(1セット目)";
+
+            let timer = setInterval(function() {
+                seconds -= 1;
+
+                let minutes = Math.floor(seconds / 60);
+                let secs = seconds % 60;
+                document.getElementById("timer").textContent =
+                    String(minutes).padStart(2, "0") + ":" + String(secs).padStart(2, "0");
+
+                if (seconds === 0) {
+                    playBeep();
+                    if (isFocus) {
+                        isFocus = false;
+                        seconds = rest * 60;
+                        totalTime += focus;
+                        saveRecord(focus);
+                        document.getElementById("total").textContent = "合計勉強時間:" + totalTime + "分";
+                        document.getElementById("status").textContent = "休憩タイム！(" + currentSession + "セット目)";
+                    } else {
+                        currentSession += 1;
+                        if (currentSession > sessions) {
+                            clearInterval(timer);
+                            document.getElementById("status").textContent = "完了！お疲れさまでした！";
+                            return;
+                        }
+                        isFocus = true;
+                        seconds = focus * 60;
+                        document.getElementById("status").textContent = "集中タイム！(" + currentSession + "セット目)";
+                    }
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
