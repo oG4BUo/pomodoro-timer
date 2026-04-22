@@ -12,6 +12,8 @@ def index():
 @app.route("/save", methods=["POST"])
 def save():
     minutes = request.json["minutes"]
+    if minutes < 1:
+        return jsonify({"status": "error", "message": "無効な値です"})
     today = str(date.today())
     
     # 既存の記録を読み込む

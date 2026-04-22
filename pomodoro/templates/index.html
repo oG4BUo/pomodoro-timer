@@ -6,9 +6,9 @@
 <body>
     <h1>ポモドーロタイマー</h1>
 
-    <p>セット数：<input type="number" id="sessions" value="3"></p>
-    <p>集中時間（分）：<input type="number" id="focus" value="25"></p>
-    <p>休憩時間（分）：<input type="number" id="rest" value="5"></p>
+    <p>セット数：<input type="number" id="sessions" value="3" min="1"></p>
+    <p>集中時間（分）：<input type="number" id="focus" value="25" min="1"></p>
+    <p>休憩時間（分）：<input type="number" id="rest" value="5" min="1"></p>
 
     <button onclick="startTimer()">スタート</button>
 
@@ -37,6 +37,11 @@
             let sessions = parseInt(document.getElementById("sessions").value);
             let focus = parseInt(document.getElementById("focus").value);
             let rest = parseInt(document.getElementById("rest").value);
+
+            if (sessions < 1 || focus < 1 || rest < 1) {
+                alert("１以上の数字を入力してください！")
+                return;
+            }
 
             let currentSession = 1;
             let isFocus = true;
